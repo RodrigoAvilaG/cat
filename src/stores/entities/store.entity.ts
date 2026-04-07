@@ -3,8 +3,10 @@ import {
   PrimaryGeneratedColumn, 
   Column, 
   CreateDateColumn, 
-  UpdateDateColumn 
+  UpdateDateColumn,
+  OneToMany 
 } from 'typeorm';
+import { Product } from '../../products/entities/product.entity';
 
 @Entity('stores') // Esto le dice a Postgres que la tabla se llamará "stores"
 export class Store {
@@ -22,6 +24,9 @@ export class Store {
 
   @Column({ type: 'jsonb', nullable: true }) // 🔥 El poder de Postgres para los atributos dinámicos
   config!: Record<string, any>;
+
+  @OneToMany(() => Product, (product) => product.store)
+  products!: Product[];
 
   @CreateDateColumn({ name: 'created_at' }) // TypeORM manejará las fechas automáticamente
   createdAt!: Date;
