@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, BadRequestException, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateStoreDto } from './dto/create-store.dto';
@@ -33,5 +33,18 @@ export class StoresService {
   async findAll() {
     // Obtenemos todas las tiendas de la base de datos
     return await this.storeRepository.find();
+  }
+
+  async findBySlug(slug: string) {
+    const store = await this.storeRepository.findOne({ 
+      where: { slug } 
+    });
+
+    // Regla de negocio: Si alguien entra a una URL de una tienda que no existe, damos error 404
+    if (!store) {
+      throw new NotFoundException(`The store with the following URL '/cat/${slug}' doesn't exist.`);
+    }
+
+    return store;
   }
 }

@@ -1,8 +1,8 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param } from '@nestjs/common';
 import { StoresService } from './stores.service';
 import { CreateStoreDto } from './dto/create-store.dto';
 
-@Controller('stores') // Esto significa que la ruta será http://localhost:3000/stores
+@Controller('stores') // http://localhost:3000/stores
 export class StoresController {
   // Inyección de dependencias: NestJS nos pasa el Servicio automáticamente
   constructor(private readonly storesService: StoresService) {}
@@ -16,5 +16,11 @@ export class StoresController {
   @Get()
   findAll() {
     return this.storesService.findAll();
+  }
+
+  // NEW ENDPOINT: GET /stores/slug-name
+  @Get(':slug')
+  findBySlug(@Param('slug') slug: string) {
+    return this.storesService.findBySlug(slug);
   }
 }
