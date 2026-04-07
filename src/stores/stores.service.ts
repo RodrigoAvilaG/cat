@@ -37,7 +37,8 @@ export class StoresService {
 
   async findBySlug(slug: string) {
     const store = await this.storeRepository.findOne({ 
-      where: { slug } 
+      where: { slug },
+      relations: ['products']
     });
 
     // Regla de negocio: Si alguien entra a una URL de una tienda que no existe, damos error 404
