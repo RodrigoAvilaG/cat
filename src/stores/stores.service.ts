@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateStoreDto } from './dto/create-store.dto';
 import { Store } from './entities/store.entity';
+import { UpdateStoreDto } from './dto/update-store.dto';
 
 @Injectable()
 export class StoresService {
@@ -47,5 +48,43 @@ export class StoresService {
     }
 
     return store;
+  }
+  // 🔥 1. BUSCAR UNA SOLA TIENDA
+  async findOne(id: string) {
+    const store = await this.storeRepository.findOneBy({ id });
+    
+    if (!store) {
+      throw new NotFoundException(`La tienda con el ID ${id} no existe.`);
+    }
+    
+    return store;
+  }
+
+  // 🔥 2. ACTUALIZAR TIENDA
+  async update(id: string, updateStoreDto: UpdateStoreDto) {
+    // Buscamos y pre-cargamos los nuevos datos
+    const store = await this.storeRepository.preload({
+      id: id,
+      ...updateStoreDto,
+    });
+
+    if (!store) {
+      throw new NotFoundException(`La tienda con el ID ${id} no existe.`);
+    }
+
+    return await this.storeRepository.save(store);
+  }
+
+  // 🔥 3. BORRAR TIENDA
+  async remove(id: string) {
+    // Reutilizamos nuestro método findOne para ver si existe
+    const store = await this.findOne(id);
+    
+    await this.storeRepository.remove(store);
+
+    return { 
+      message: 'Tienda eliminada con éxito',
+      deletedId: id 
+    };
   }
 }

@@ -1,4 +1,5 @@
-import { Controller, Get, Patch, Delete, Post, Body, UseInterceptors, UploadedFile, BadRequestException, Param } from '@nestjs/common';
+import { Controller, Get, Patch, Delete, Post, Body, UseInterceptors, UploadedFile, BadRequestException, Param, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -13,7 +14,14 @@ export class ProductsController {
     private readonly cloudinaryService: CloudinaryService, // <-- Lo inyectamos aquí
   ) {}
 
+  // 🔥 PUBLIC ROUTE
+  @Get()
+  findAll() {
+    return this.productsService.findAll();
+  }
+
   // 🔥 ENDPOINT POST
+  @UseGuards(AuthGuard('jwt'))
   @Post()
   @UseInterceptors(FileInterceptor('image')) // 🔥 Atrapa el archivo adjunto que se llame "image"
   async create(
@@ -39,12 +47,8 @@ export class ProductsController {
     return this.productsService.create(createProductDto);
   }
 
-  @Get()
-  findAll() {
-    return this.productsService.findAll();
-  }
-
   // 🔥 ENDPOINT PATCH
+  @UseGuards(AuthGuard('jwt'))
   @Patch(':id')
   @UseInterceptors(FileInterceptor('image'))
   async update(
@@ -63,6 +67,7 @@ export class ProductsController {
   }
 
   // 🔥 ENDPOINT DELETE
+  @UseGuards(AuthGuard('jwt'))
   @Delete(':id')
   remove(@Param('id') id: string) {
     // Extraemos el ID de la URL y se lo pasamos al servicio
