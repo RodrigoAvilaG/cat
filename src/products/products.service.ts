@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, InternalServerErrorException } from '@ne
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateProductDto } from './dto/create-product.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './entities/product.entity';
 
 @Injectable()
@@ -11,6 +12,7 @@ export class ProductsService {
     private readonly productRepository: Repository<Product>,
   ) {}
 
+  // 🔥 CREAR UN PRODUCTO
   async create(createProductDto: CreateProductDto) {
     try {
       // 1. Extraemos el storeId y el resto de los datos
@@ -35,11 +37,46 @@ export class ProductsService {
     }
   }
 
+  // 🔥 MÉTODO BUSCAR TODOS LOS PRODUCTOS
   async findAll() {
     // Cuando buscamos productos, le decimos a TypeORM que también nos traiga 
     // la información de la tienda a la que pertenecen (Join)
     return await this.productRepository.find({
       relations: ['store'] 
     });
+  }
+
+  // 🔥 MÉTODO PARA ACTUALIZAR
+  async update(id: string, updateProductDto: UpdateProductDto) {
+    // preload busca el objeto por ID y le "encima" los nuevos datos del DTO
+    const product = await this.productRepository.preload({
+      id: id,
+      ...updateProductDto,
+    });
+
+    if (!product) {
+      throw new NotFoundException(`Producto con ID ${id} no encontrado`);
+    }
+
+    return await this.productRepository.save(product);
+  }
+
+  // 🔥 MÉTODO PARA BORRAR
+  async remove(id: string) {
+    // 1. Primero verificamos si el producto realmente existe
+    const product = await this.productRepository.findOneBy({ id });
+    
+    if (!product) {
+      throw new NotFoundException(`El producto con el ID ${id} no existe.`);
+    }
+
+    // 2. Si existe, lo borramos de la base de datos
+    await this.productRepository.remove(product);
+
+    // 3. Regresamos un mensaje de confirmación
+    return { 
+      message: 'Producto eliminado con éxito',
+      deletedId: id 
+    };
   }
 }
